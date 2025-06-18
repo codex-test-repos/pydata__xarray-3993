@@ -3481,18 +3481,25 @@ class DataArray(AbstractArray, DataWithCoords):
         return self._from_temp_dataset(ds)
 
     def integrate(
-        self, dim: Union[Hashable, Sequence[Hashable]], datetime_unit: str = None
+        self,
+        coord: Union[Hashable, Sequence[Hashable]],
+        datetime_unit: str = None,
+        *,
+        dim: Union[Hashable, Sequence[Hashable]] = None,
     ) -> "DataArray":
         """ integrate the array with the trapezoidal rule.
 
         .. note::
-            This feature is limited to simple cartesian geometry, i.e. dim
+            This feature is limited to simple cartesian geometry, i.e. coord
             must be one dimensional.
 
         Parameters
         ----------
-        dim : hashable, or sequence of hashable
+        coord : hashable, or sequence of hashable
             Coordinate(s) used for the integration.
+        dim : hashable, or sequence of hashable, optional
+            Deprecated name for ``coord``. Cannot be used together with
+            ``coord``.
         datetime_unit : {"Y", "M", "W", "D", "h", "m", "s", "ms", "us", "ns", \
                          "ps", "fs", "as"}, optional
             Can be used to specify the unit if datetime coordinate is used.
@@ -3528,7 +3535,17 @@ class DataArray(AbstractArray, DataWithCoords):
         array([5.4, 6.6, 7.8])
         Dimensions without coordinates: y
         """
-        ds = self._to_temp_dataset().integrate(dim, datetime_unit)
+        if dim is not None:
+            warnings.warn(
+                "`dim` has been renamed to `coord` and will be removed in a future release",
+                FutureWarning,
+                stacklevel=2,
+            )
+            if coord is not None:
+                raise TypeError("cannot specify both `coord` and `dim`")
+            coord = dim
+
+        ds = self._to_temp_dataset().integrate(coord, datetime_unit)
         return self._from_temp_dataset(ds)
 
     def unify_chunks(self) -> "DataArray":
