@@ -6656,6 +6656,18 @@ def test_trapz_datetime(dask, which_datetime):
     assert_allclose(actual, actual2 / 24.0)
 
 
+def test_integrate_dim_kwarg_deprecated():
+    da = xr.DataArray(
+        np.arange(5), dims="x", coords={"x": np.linspace(0.0, 1.0, 5)}
+    )
+
+    with pytest.warns(FutureWarning):
+        result = da.integrate(dim="x")
+
+    expected = da.integrate("x")
+    assert_equal(result, expected)
+
+
 def test_no_dict():
     d = Dataset()
     with pytest.raises(AttributeError):
